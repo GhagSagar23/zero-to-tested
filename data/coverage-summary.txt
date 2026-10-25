@@ -1,0 +1,15 @@
+# lcov --summary coverage/lcov.info
+# Generated from lcov.info dated 2026-08-26
+#
+# Raw coverage (before exclusion filtering):
+#   source files: 619
+#   lines.......: 54.4% (16895 of 31039 lines)
+#   functions...: no data found
+#
+# After filtering with LCOV_REMOVE_PATTERNS:
+#   lines.......: 55.6% (16595 of 29824 lines)
+#
+# Note: coverage data is from 2026-08-26. A fresh run
+# (make coverage) will produce updated numbers.
+# Test invocations at time of coverage run: ~1,451.
+# Current test invocations (2026-10-26): 2,583.

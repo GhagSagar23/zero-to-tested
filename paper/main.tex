@@ -1,0 +1,761 @@
+% From 0% to Tested: Unit-Testing Flutter Apps with Heavy Platform Integration
+% Target: IEEE Software (rolling submissions, ~4000-6000 words)
+% Review: single-anonymous by default
+% Format: IEEEtran journal/compsoc
+
+\documentclass[10pt,journal,compsoc]{IEEEtran}
+
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{cite}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  language=Java,
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+}
+
+\begin{document}
+
+\title{From 0\% to Tested: Unit-Testing Flutter Apps\\ with Heavy Platform Integration}
+
+\author{Sagar~Ghag
+\IEEEcompsocitemizethanks{\IEEEcompsocthanksitem S. Ghag is with Kryonex Labs, Pune, India.\protect\\
+E-mail: sagar.ghag1997@gmail.com}}
+
+\IEEEtitleabstractindextext{%
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+
+\begin{abstract}
+Flutter apps that depend on Firebase, background services, and native
+platform channels present a testing problem that framework documentation
+does not address: a significant fraction of production code is structurally
+untestable at the unit level, and naive line-coverage targets obscure this
+reality rather than measuring quality.
+
+We report on the testing journey of Zontra, a 104,886-line production
+Flutter app for field workforce tracking, from zero automated tests to
+2,583 tests across 292 files with 55.6\% filtered line coverage. Our
+approach starts with a coverage-exclusion policy that separates
+platform-wrapper code from testable business logic. Mock boundaries using
+\texttt{mocktail} and \texttt{bloc\_test} confine platform dependencies
+to thin adapter layers. Seventeen custom lint rules (built on
+\texttt{custom\_lint}) keep the architecture testable. We document six
+cases where automated tests caught production regressions, including one
+that produced a new static-analysis rule and one that exposed a
+security-relevant routing bypass. We report costs: 53,354 lines of test
+code, a 0.51 test-to-source line ratio, and the effect of
+\texttt{fakeAsync} conversion on individual test files.
+
+Practitioners building Flutter apps with Firebase or native integrations
+can adopt the exclusion framework, mock-boundary patterns, and custom-lint
+rules directly.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Flutter, mobile testing, platform integration, coverage policy, custom lint rules, experience report.
+\end{IEEEkeywords}}
+
+\maketitle
+
+% ============================================================================
+% 1. INTRODUCTION
+% ============================================================================
+
+\section{Introduction}
+\label{sec:intro}
+
+The Flutter testing documentation~\cite{flutter_testing_docs} presents a
+clean three-layer pyramid: unit tests, widget tests, integration tests.
+The examples use stateless widgets with no dependencies, or simple state
+objects that accept injected collaborators. Production Flutter apps look
+nothing like this.
+
+A production app initialises Firebase before the first frame, opens
+foreground services to survive background kills, registers push
+notification handlers, reads from SharedPreferences, calls platform
+channels into Kotlin and Swift. None of these can be instantiated in a
+\texttt{flutter\_test} harness without substantial scaffolding that the
+official documentation does not describe.
+
+The result is predictable. Kochhar et al.~\cite{kochhar2015understanding}
+found that mobile developers write fewer tests than their web and desktop
+counterparts. Linares-V\'{a}squez et al.~\cite{linares2017developers}
+confirmed that Android apps have lower test density than server-side
+projects. Our experience suggests the gap is even wider for cross-platform
+apps with heavy platform integration, because the framework boundary adds
+a second layer of indirection that must be mocked.
+
+This paper reports on our experience testing Zontra, a field workforce
+tracking app built in Flutter with Firebase Authentication, Firestore,
+Remote Config, FCM push notifications, a Rust-based background location
+engine accessed via FFI, and SharedPreferences-backed local storage. The
+app serves two client organisations in the Indian delivery and logistics
+sector.
+
+We started with zero tests. Eighteen months later the codebase has 2,583
+tests across 292 files, covering 55.6\% of filtered source lines. The
+journey was not a straight line; we over-tested in some areas, excluded
+too little in the early months, and learned by watching tests break in
+ways that taught us what was worth testing and what was not.
+
+Our contributions are:
+
+\begin{enumerate}
+  \item A \textbf{coverage-exclusion framework} that separates
+        platform-wrapper code from testable business logic, with a
+        concrete taxonomy of what to exclude and a reporting method that
+        makes the gap honest rather than hidden.
+  \item A \textbf{mock-boundary strategy} for Flutter apps with Firebase
+        and native platform dependencies, showing how to confine
+        untestable code to thin adapters while keeping the business logic
+        fully injectable.
+  \item A \textbf{custom-lint package} of 17 rules that keep the
+        architecture testable, including one rule born from a production
+        regression.
+  \item \textbf{Six documented cases} where automated tests caught real
+        production bugs, including a security-relevant routing bypass.
+\end{enumerate}
+
+% ============================================================================
+% 2. CONTEXT
+% ============================================================================
+
+\section{Context: The Zontra App}
+\label{sec:context}
+
+Zontra is a B2B field workforce tracking application. Employers use it to
+monitor employee location during work shifts, track distance travelled,
+and manage attendance via geofenced office check-ins. The app runs on
+Android devices ranging from budget handsets (Redmi 9A, 3GB RAM) to
+mid-range phones (Samsung Galaxy A14).
+
+At the time of writing, the production codebase contains 750 source files
+and 104,886 lines of Dart in \texttt{lib/}. Key dependencies that create
+testing friction:
+
+\begin{itemize}
+  \item \textbf{Firebase}: Authentication (phone OTP), Firestore (real-time
+        sync), Remote Config (feature flags), Cloud Messaging (push
+        notifications). Each requires \texttt{Firebase.initializeApp()},
+        which fails in a test harness without
+        \texttt{firebase\_core\_platform\_interface} stubs.
+  \item \textbf{Tracelet}: A Rust-based background location engine compiled
+        via Flutter-Rust Bridge. The engine runs as an Android foreground
+        service. It cannot be instantiated in a desktop test runner.
+  \item \textbf{SharedPreferences}: Used for offline waypoint storage and
+        session state. Testable only via Flutter's built-in
+        \texttt{setMockInitialValues} helper, which requires explicit
+        setup per test.
+  \item \textbf{GetIt}: Service locator for dependency injection. All
+        production dependencies are registered at startup. Tests must
+        reset and re-register with mocks per test or group.
+\end{itemize}
+
+The development team is two engineers. There is no dedicated QA role.
+
+% ============================================================================
+% 3. THE TESTING WALL
+% ============================================================================
+
+\section{The Testing Wall}
+\label{sec:wall}
+
+We use ``testing wall'' to describe the point at which a developer writing
+their first test for a platform-integrated Flutter app hits a cascade of
+initialisation failures. The first \texttt{flutter test} invocation on our
+codebase (before any test infrastructure) produced:
+
+\begin{lstlisting}[language={},numbers=none]
+FirebaseException ([core/no-app])
+No Firebase App has been created
+\end{lstlisting}
+
+This error appeared not because the test exercised Firebase, but because
+the file under test imported a module that transitively imported
+\texttt{firebase\_core}. The dependency graph is the problem, not the test.
+
+We identified four categories of untestable code:
+
+\begin{enumerate}
+  \item \textbf{SDK wrappers}: Thin classes that call Firebase Auth,
+        Firestore, or Remote Config. These require real SDK initialisation.
+        Example: \texttt{feature\_flag\_service.dart} (116 lines), which
+        wraps \texttt{FirebaseRemoteConfig} fetch-on-start and a
+        real-time listener stream. No unit test exists for this file.
+  \item \textbf{Native bridges}: The Tracelet background location engine
+        (FFI to Rust). Cannot run on a desktop test runner. Stubbed to a
+        one-liner no-op: \texttt{Future<void> noOpForceStop() async \{\}}.
+  \item \textbf{DI wiring}: GetIt registration files
+        (\texttt{service\_locator.dart}, 455 lines across 3 files). These
+        are lists of \texttt{registerLazySingleton} calls. No branching
+        logic; testing them would mean testing GetIt itself.
+  \item \textbf{Route tables}: \texttt{app\_router.dart} (253 lines).
+        Static mapping from route names to screen constructors. The app
+        originally used Fluro and later migrated to GoRouter; both
+        routers are declarative maps. Testing route resolution is the
+        router library's job.
+\end{enumerate}
+
+Together these categories account for 21 files and 4,154 lines, roughly
+13\% of the instrumented source. The bulk of the exclusion (2,939 lines)
+is the location engine's Dart-side FFI bindings: not thin wrappers, but
+the full bridge layer between the app and the Rust core. The transitive
+import graph means that without explicit architectural boundaries, these
+files poison the test harness for everything that depends on them.
+
+% ============================================================================
+% 4. APPROACH
+% ============================================================================
+
+\section{Approach}
+\label{sec:approach}
+
+We separated what to exclude from what to test, drew mock boundaries
+around the platform dependencies that remained, and wrote static-analysis
+rules to keep both decisions from eroding.
+
+% ----------------------------------------------------------------------------
+\subsection{Coverage Exclusion Policy}
+\label{sec:exclusion}
+
+We run \texttt{flutter test --coverage} in CI and post-process the
+resulting \texttt{lcov.info} with \texttt{lcov --remove} before computing
+metrics. The exclusion patterns are declared in the project
+\texttt{Makefile}, not hidden in CI scripts:
+
+\begin{table}[h]
+\caption{Coverage exclusion patterns}
+\label{tab:exclusions}
+\small
+\begin{tabular}{@{}p{4.2cm}l@{}}
+\toprule
+Pattern & Reason \\
+\midrule
+\texttt{*.g.dart}          & Generated code \\
+\texttt{firebase\_options*} & Build-generated config \\
+\texttt{firebase/*.dart}   & SDK wrappers (3 files) \\
+\texttt{feature\_flag\_service} & Remote Config wrapper \\
+\texttt{background\_location\_} \texttt{service} & Native FFI bridge \\
+\texttt{core/location\_engine/*} & FFI bindings (13 files) \\
+\texttt{notification\_helper} & FCM platform code \\
+\texttt{app\_theme.dart}, \texttt{app\_text\_theme.dart} & Style constants \\
+\texttt{chart\_tokens.dart} & Style constants \\
+\texttt{pune\_sample\_trail.dart} & Static fixture data \\
+\texttt{app\_di.dart}, \texttt{app\_router.dart} & DI wiring + route table \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The exclusion removes 21 files and 4,154 lines. Raw coverage is 54.4\%
+(16,895 of 31,039 instrumented lines); filtered coverage is 55.6\%
+(16,595 of 29,824 lines). The gap between raw and filtered is small, but
+the excluded volume is not: 13\% of instrumented source is structurally
+untestable. We initially underestimated this. Our early exclusion list
+covered only the thin wrappers (about 1,200 lines), and we treated 5\%
+as a design-smell threshold. Adding the location engine's FFI bridge
+layer pushed the exclusion past that threshold, which forced us to
+re-examine whether the bridge code could be restructured. It could not:
+the Dart bindings mirror the Rust API surface, and splitting them further
+would add indirection without enabling testability.
+
+The \texttt{Makefile} declares a \texttt{COVERAGE\_THRESHOLD} of 85\%.
+This threshold applies to targeted module runs, not the full-codebase
+metric. The full-codebase 55.6\% reflects modules not yet covered (screens,
+some data services), not a policy that 55\% is acceptable.
+
+The guiding principle: \emph{exclude honestly and report both numbers}.
+Reporting only the filtered number hides the gap. Reporting only the raw
+number penalises a codebase for having platform wrappers it cannot
+eliminate. Both numbers together tell the real story.
+
+% ----------------------------------------------------------------------------
+\subsection{Mock-Boundary Architecture}
+\label{sec:mocks}
+
+Every platform dependency enters the testable codebase through one of two
+gates:
+
+\textbf{Gate 1: Constructor injection via Cubit dependencies.}
+All business logic lives in Cubits (we enforce Cubit-only state management
+via custom lint; see Section~\ref{sec:lints}). Each Cubit takes its
+dependencies as constructor parameters. Tests instantiate the Cubit with
+\texttt{mocktail} mocks:
+
+\begin{lstlisting}[language=Java,caption={Typical Cubit test pattern}]
+class MockAdminService extends Mock
+    implements AdminService {}
+
+blocTest<EmployeeShiftCubit, ShiftState>(
+  'emits punched-in when shift starts',
+  build: () => EmployeeShiftCubit(
+    adminService: MockAdminService(),
+    locationStorage: MockLocationStorage(),
+  ),
+  act: (c) => c.punchIn(officeId: 'office-1'),
+  expect: () => [isA<ShiftActive>()],
+);
+\end{lstlisting}
+
+This pattern scales. The test suite has 29 Cubit test files covering 28
+of 50 production Cubits (56\% file-level coverage). The covered Cubits
+are concentrated in the tracking and attendance domains, where bugs cost
+the most; the 22 untested Cubits are admin, reporting, and announcement
+screens where the business logic is thinner. The
+\texttt{EmployeeShiftCubit} alone has 4 test files totalling 1,033 lines,
+covering punch-in, punch-out, geofence checks, and session hydration.
+
+\textbf{Gate 2: Platform interface stubs for Firebase.}
+Firebase tests use \texttt{firebase\_core\_platform\_interface} (a dev
+dependency) which provides \texttt{setupFirebaseCoreMocks()}. This
+function registers a fake \texttt{FirebasePlatform} so that
+\texttt{Firebase.initializeApp()} succeeds in the test process. On top of
+this, individual Firebase services (\texttt{FirebaseAuth},
+\texttt{FirebaseFirestore}) are mocked via \texttt{mocktail}.
+
+One pattern deserves mention. The phone-auth wrapper
+(\texttt{firebase\_phone\_auth.dart}, 233 lines) was initially excluded as
+``untestable.'' We later wrote 390 lines of test code for it using a
+callback-capture technique:
+
+\begin{lstlisting}[language=Java,caption={Capturing Firebase verification callbacks}]
+// Capture the callbacks Firebase calls async
+when(() => mockAuth.verifyPhoneNumber(
+  phoneNumber: any(named: 'phoneNumber'),
+  verificationCompleted: captureAny(...),
+  verificationFailed: captureAny(...),
+  codeSent: captureAny(...),
+  codeAutoRetrievalTimeout: captureAny(...),
+)).thenAnswer((_) async {});
+
+// Drive the captured callback synchronously
+final codeSent = verify(...).captured.last;
+codeSent('verification-id-123', null);
+\end{lstlisting}
+
+This file taught us that ``untestable'' often means ``expensive to test.''
+The 390 lines of test scaffolding for 233 lines of production code is a
+ratio of 1.67x. Whether that cost is worth it depends on the file's blast
+radius. For phone authentication (the app's only login path), it was.
+
+\textbf{GetIt reset pattern.}
+A shared helper (\texttt{get\_it\_helper.dart}) calls
+\texttt{GetIt.instance.reset()} and re-registers the service locator with
+test mocks in each test group's \texttt{setUp}. This prevents
+cross-contamination between tests that rely on different mock
+configurations.
+
+\textbf{SharedPreferences.}
+Flutter's SDK provides \texttt{SharedPreferences.setMockInitialValues(\{\})}
+for test use. We wrap this in a 7-line helper
+(\texttt{app\_storage\_helper.dart}) that all storage tests import.
+
+\textbf{Widget test theme scaffolding.}
+The app uses a custom design system (\texttt{forui}) rather than raw
+Material. Every widget test must pump its widget inside a theme provider,
+localisations, and a \texttt{BlocProvider<ThemeCubit>}. We extracted this
+into \texttt{wrapWithTheme()}, which has four variants: light, dark,
+overlay-light, overlay-dark. Without this helper, each widget test file
+would repeat 15--20 lines of ancestor setup. The helper is 82 lines and
+is imported by every widget test in the suite. This is scaffolding that
+the Flutter testing documentation does not warn you about: the moment you
+leave Material defaults, every widget test needs a custom test harness.
+
+\textbf{Driving futures inside \texttt{fakeAsync}.}
+A 28-line helper (\texttt{fake\_async\_resolve.dart}) provides a generic
+\texttt{resolve<T>()} function that drives a \texttt{Future<T>} to
+completion inside \texttt{fakeAsync}, re-throwing any captured error. The
+standard \texttt{fakeAsync} API does not provide this out of the box;
+without it, Cubit methods that await a Future silently hang in the test
+and produce a timeout with no useful stack trace.
+
+% ----------------------------------------------------------------------------
+\subsection{Custom Lint Rules as Architectural Enforcement}
+\label{sec:lints}
+
+The \texttt{zontra\_lints} package lives in \texttt{packages/zontra\_lints}
+as a monorepo path dependency (published publicly as
+\texttt{kx\_lints}\footnote{\url{https://pub.dev/packages/kx\_lints}}).
+It uses the \texttt{custom\_lint\_builder}
+framework (version 0.8.0) and the Dart \texttt{analyzer} API. It contains
+17 rules at the time of writing. Table~\ref{tab:lints} lists the rules
+relevant to testability.
+
+\begin{table}[h]
+\caption{Custom lint rules that enable testability}
+\label{tab:lints}
+\small
+\begin{tabular}{@{}p{3.8cm}p{4.5cm}@{}}
+\toprule
+Rule & Effect on testability \\
+\midrule
+\texttt{cubit\_only} & Bans \texttt{extends Bloc<E,S>}; forces Cubit-only
+  state management. Cubits are simpler to test: no event
+  class boilerplate, direct method calls in \texttt{blocTest}. \\
+\texttt{file\_length} & ERROR at 400 lines. Forces splitting large files,
+  which produces smaller, more testable units. \\
+\texttt{one\_widget\_per\_file} & One widget class per file (excludes
+  \texttt{State<T>}). Keeps widget tests isolated. \\
+\texttt{route\_constants\_only} & Navigation must use \texttt{AppRoutes.*}
+  constants. Prevents string-literal routes that break silently. \\
+\texttt{no\_raw\_alpha\_integer} & Born from PR \#421 (see
+  Section~\ref{sec:regressions}). Bans integer alpha in
+  \texttt{Color.withValues(alpha: N)} where N > 1.0. \\
+\texttt{late\_controllers\_} \texttt{not\_final} & Prevents \texttt{late final} on
+  animation/scroll controllers. Ensures \texttt{didUpdateWidget} can
+  reassign. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The remaining 11 rules enforce design-system consistency. Three examples:
+\texttt{no\_material\_widgets} bans raw Material widgets
+(\texttt{ElevatedButton}, \texttt{TextField}) in favour of project
+wrappers that carry the design system's tokens.
+\texttt{no\_theme\_of} bans \texttt{Theme.of(context)} and forces access
+through typed token accessors, which eliminates a class of
+\texttt{null} errors in widget tests where the theme context is
+incomplete.
+\texttt{widgets\_via\_barrel\_import} requires importing core widgets
+through a barrel file, so renaming or moving a widget breaks one import
+line instead of forty.
+
+These rules do not directly test anything, but they shrink the surface
+area of the UI layer. A widget test that pumps a project button does not
+need to configure Material's full \texttt{ThemeData}; it configures the
+project's thinner \texttt{FThemeData} instead.
+
+Each rule is a single Dart class extending \texttt{DartLintRule} from
+\texttt{custom\_lint\_builder}. The \texttt{no\_raw\_alpha\_integer} rule
+(born from Case 1) is 47 lines: it visits every
+\texttt{InstanceCreationExpression} and
+\texttt{MethodInvocation} named \texttt{withValues}, checks whether the
+\texttt{alpha} argument is a numeric literal greater than 1.0, and
+reports a warning with a suggested fix. Writing a new rule takes two to
+four hours, including tests for the rule itself.
+
+Custom lint rules are cheaper than code review for architectural
+constraints. A reviewer catches a violation once. A lint rule catches it
+before the code reaches review, in every file, across every contributor,
+permanently.
+Sadowski et al.~\cite{sadowski2018lessons} reported similar findings on
+the value of automated checks in Google's code review process.
+
+% ============================================================================
+% 5. REGRESSIONS CAUGHT
+% ============================================================================
+
+\section{Tests Catching Production Bugs}
+\label{sec:regressions}
+
+Six cases illustrate what automated testing bought us.
+
+\textbf{Case 1: Alpha channel integer/float mixup (PR \#421).}
+The \texttt{AppOtpField} widget passed 8-bit integers (160, 200, 120, 180)
+to \texttt{Color.withValues(alpha:)}, which expects a 0.0--1.0 double. The
+resulting colours were wrong on some devices, invisible on others. A widget
+test was added after the fix. More importantly, the bug produced a new
+custom lint rule (\texttt{no\_raw\_alpha\_integer}) that prevents the same
+class of error codebase-wide. One bug became one test and one lint rule:
+three layers of defence from a single incident.
+
+\textbf{Case 2: Tracking data discrepancy (PR \#402).}
+The employee view showed 22.9 km over 7 hours (423 waypoints). The admin
+view showed 3.7 km in under a minute (11 of 62 waypoints). Five
+compounding root causes: un-uploaded background waypoints, no flush on
+reattach, wrong route reading from local SharedPreferences, ongoing
+session zero-defaults, and UTC vs.\ IST time comparisons. Unit and widget
+tests were added for the waypoint model, location storage, session trail,
+and rider trail screen. The test count for the tracking module went from
+12 to 47.
+
+\textbf{Cases 3--4: Widget assertion fragility (commits \texttt{2641276},
+\texttt{34394f8}).}
+Two widget test failures taught us what to assert on. A greeting test
+(``Good morning, \ldots'') passed in the morning and failed at night
+because CI ran after hours; the fix was \texttt{textContaining}. A
+separate refactor swapped \texttt{Text('No waypoints recorded today.')}
+for a \texttt{NotFoundState} widget, and every test that pinned the old
+copy broke; the fix was asserting on widget type instead of string
+content. The rule we landed on: assert structure when it is stable, copy
+when it is the contract.
+
+\textbf{Case 5: Route-ordering security bypass (\texttt{app\_router\_test}).}
+The attendance module defines two routes:
+\texttt{/attendance/:userId/history} (static, admin-gated) and
+\texttt{/attendance/:userId/:date} (parametric). Fluro matches
+first-registered-wins. If history is registered after detail, both URLs
+match the parametric route and the admin security gate in
+\texttt{\_attendanceHistoryHandler} is silently bypassed. A route-ordering
+test pins the registration sequence. This is the only case where a test
+caught a security-relevant bug; the other five are correctness or
+performance.
+
+\textbf{Case 6: Test suite performance (commit \texttt{25865ef}, PR \#183).}
+The \texttt{riders\_service\_test} took 15.3 seconds because the Cubit
+under test used real timer delays. Conversion to \texttt{fakeAsync}
+dropped it to under a second. \texttt{otp\_controller\_test} went from 6.4
+seconds to near-instant. At the time of conversion (1,451 tests), the
+full suite dropped from 34 to 22 seconds. The suite has since grown to
+2,583 tests and takes longer, but the per-file speedups from
+\texttt{fakeAsync} remain. This is not a production bug catch, but it
+mattered for adoption: a slow test file is a test file developers skip.
+
+% ============================================================================
+% 6. COSTS AND NUMBERS
+% ============================================================================
+
+\section{Costs and Observations}
+\label{sec:costs}
+
+\begin{table}[h]
+\caption{Test suite metrics}
+\label{tab:metrics}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Metric & Value \\
+\midrule
+Source files & 750 \\
+Source lines (\texttt{lib/}) & 104,886 \\
+Test files & 292 \\
+Test invocations & 2,583 \\
+Test lines & 53,354 \\
+Test-to-source line ratio & 0.51 \\
+Raw line coverage & 54.4\% (16,895 / 31,039) \\
+Filtered line coverage & 55.6\% (16,595 / 29,824) \\
+Excluded files & 21 (4,154 lines) \\
+Coverage exclusion overhead & 13\% of instrumented source \\
+Custom lint rules & 17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The test-to-source ratio of 0.51 means roughly one line of test for every
+two lines of production code. This is lower than the 1:1 ratio sometimes
+cited as a target, but higher than the median for mobile
+apps~\cite{kochhar2015understanding}. The tracking and attendance Cubits
+are closer to 1:1; the screen and widget layers pull the average down
+because many screens lack widget tests.
+
+Beyond test files themselves, the suite requires 18 helper files totalling
+roughly 1,500 lines: shared mocks, fixture factories for domain models
+(riders, tasks, teams, waypoints), a 136-line
+\texttt{FirebaseRemoteConfigPlatform} fake that allows per-test feature
+flag overrides, and a \texttt{flutter\_test\_config.dart} that installs a
+tolerant golden comparator (0.5\% pixel diff threshold) and suppresses
+two known Flutter 3.47 framework assertion regressions. This
+infrastructure is invisible in test-to-source ratios but took weeks to
+build and must be maintained when dependencies upgrade.
+
+The framework regression suppression deserves a note. Flutter 3.47
+introduced assertion failures in \texttt{MergeSemantics} (a forui
+dependency) and \texttt{EditableText} deactivation that broke our suite
+without any change on our side. The fix was a global test binding in
+\texttt{flutter\_test\_config.dart} that catches and suppresses these
+specific assertions. This is a maintenance cost that does not appear in
+any metric: the suite would report hundreds of failures on a framework
+upgrade, none of which reflect bugs in our code.
+
+The test invocation count grew from roughly 1,450 to 2,583 over two
+months. The growth came from two sources: golden tests for core design
+system widgets (each widget generates multiple test invocations across
+theme variants), and expanded coverage of the tracking module after the
+data discrepancy bug (Case 2).
+
+We have no generated code (\texttt{.g.dart}, \texttt{.freezed.dart}) in
+the current codebase. This is unusual for a Flutter app of this size, and
+it simplifies the exclusion policy. If we adopt code generation in the
+future, the exclusion patterns already account for it. The project also
+has six integration test files (1,355 lines) covering auth, offline sync,
+push notifications, and shift lifecycle flows; these are outside the
+scope of this paper but represent additional testing investment.
+
+One cost we did not anticipate: test maintenance during UI refactors.
+Widget tests that assert on specific text strings break on copy changes.
+Widget tests that assert on widget types survive refactors but miss
+regressions in the actual displayed content. We have not found a clean
+answer. Our current rule: assert on type for layout structure, pin one
+text string per screen as a smoke check.
+
+% ============================================================================
+% 7. LESSONS LEARNED
+% ============================================================================
+
+\section{Lessons Learned}
+\label{sec:lessons}
+
+\textbf{L1: ``Untestable'' usually means ``expensive to test.''}
+We initially excluded the Firebase phone-auth wrapper as structurally
+untestable. Then it caused two production bugs. We went back and wrote
+390 lines of test scaffolding for 233 lines of production code, a 1.67x
+ratio that would look wasteful on a spreadsheet.
+
+It was not wasteful. That file is the only login path for every user of
+the app. Cost-per-line is not the right metric; blast radius is.
+
+\textbf{L2: One regression can fund an entire static-analysis rule.}
+The alpha-channel bug (Case 1) took two hours to diagnose. The lint rule
+took three hours to write. Every future developer on this codebase gets the
+protection without knowing the bug existed. Custom lint rules are the
+highest-leverage testing investment we made.
+
+\textbf{L3: Coverage numbers need context or they mislead.}
+55.6\% coverage sounds mediocre. But 13\% of our instrumented source is
+platform code that cannot be unit-tested, and another ~20\% is screen
+widgets we have not yet reached. The tracking and attendance Cubits,
+where bugs actually hurt, are above 90\%. A single coverage number
+without the exclusion
+context is a vanity metric at best and a perverse incentive at worst.
+Inozemtseva and Holmes~\cite{inozemtseva2014coverage} showed that coverage
+alone is not strongly correlated with fault detection; our experience
+confirms this.
+
+\textbf{L4: Lint rules beat code review for architectural invariants.}
+A reviewer might miss a \texttt{Bloc<E,S>} in a PR with 400 changed lines.
+The \texttt{cubit\_only} lint rule will not. We enforce Cubit-only state
+management, single-widget-per-file, 400-line file caps, barrel imports,
+and route constants through lint rules rather than review checklists. The
+rules fire in the IDE before the developer opens a PR.
+
+\textbf{L5: Fast test files matter more than fast suites.}
+Converting \texttt{riders\_service\_test} from real timers to
+\texttt{fakeAsync} dropped it from 15.3 seconds to under one. That
+single change made the difference between running the file after every
+edit and running it once before pushing. The full suite has since grown
+past the point where running it after saving is practical (2,583 tests),
+but per-file speed still determines whether a developer tests at all
+during a focused editing session.
+
+% ============================================================================
+% 8. THREATS TO VALIDITY
+% ============================================================================
+
+\section{Threats to Validity}
+\label{sec:threats}
+
+\textbf{External validity.} This is a single-project experience report.
+Zontra's dependency profile (Firebase, FFI, SharedPreferences) is common
+but not universal; apps using other backends (Supabase, AWS Amplify,
+custom REST) will face different testing boundaries. The exclusion
+framework transfers; the specific exclusion patterns may not.
+
+\textbf{Internal validity.} We attribute regression catches to the test
+suite, but we cannot prove that manual testing would not have caught
+the same bugs. Case 2 (the tracking discrepancy) was first reported by a
+user, not by a test. The tests were written \emph{after} the fix to
+prevent recurrence, not as a proactive catch.
+
+\textbf{Construct validity.} We report line coverage as our primary
+metric. Line coverage is an imperfect proxy for test
+effectiveness~\cite{inozemtseva2014coverage,gopinath2014code}. We do not
+claim that 55.6\% coverage means the app is 55.6\% ``tested''; we use it
+as a directional measure and a ratchet to prevent regression of tested
+modules.
+
+\textbf{Researcher bias.} The first author is also the primary developer
+of the codebase and the test suite. This dual role means the testing
+decisions and their evaluation are not independent. We mitigate this by
+reporting concrete metrics (line counts, coverage percentages, commit
+hashes) that a reviewer can verify against the repository, but we cannot
+rule out selection bias in which regression cases we chose to highlight.
+
+\textbf{Team size.} The development team is two engineers. A larger team
+might face coordination costs (conflicting mocks, flaky shared fixtures)
+that we do not encounter. The custom lint rules may become more valuable
+at larger team sizes, but we cannot verify this.
+
+% ============================================================================
+% 9. RELATED WORK
+% ============================================================================
+
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Mobile testing.}
+Kochhar et al.~\cite{kochhar2015understanding} surveyed 83 Android
+developers and found that 14\% wrote no tests at all;
+Linares-V\'{a}squez et al.~\cite{linares2017developers} found a median
+test ratio of 0.04 across 1,000 Android apps. Our ratio of 0.51 is an
+order of magnitude higher, which we attribute partly to the Cubit
+architecture making business logic injection-friendly by default. On the
+challenges side, Muccini et al.~\cite{muccini2012software} identified
+platform fragmentation and Coppola et
+al.~\cite{coppola2019mobile} studied GUI test fragility; our widget test
+breakages (Cases 3--4) match their findings. Zein et
+al.~\cite{zein2016systematic} noted that most research targets native
+Android/iOS; cross-platform testing, especially for Flutter, remains
+under-studied. We found no peer-reviewed work on unit-testing Flutter
+apps with Firebase or FFI dependencies. The closest practitioner
+literature is Flutter's own testing documentation~\cite{flutter_testing_docs},
+which covers the framework's API but not the scaffolding required when
+production code depends on platform services that the test harness
+cannot initialise.
+
+\textbf{Cross-platform development.}
+Bi{\o}rn-Hansen et al.~\cite{biorn2020flutter} surveyed cross-platform
+approaches and noted that testing support varies significantly across
+frameworks. Flutter's testing layer is more mature than most
+alternatives, but the gap between documentation and production practice
+that we describe has not been previously reported.
+
+\textbf{Code review and static analysis.}
+Sadowski et al.~\cite{sadowski2018lessons} reported on code review at
+Google, finding that automated checks reduced review burden and caught
+issues that human reviewers missed. Our custom lint rules serve a
+similar function at a much smaller scale.
+Beller et al.~\cite{beller2019developer} studied developer testing
+behaviour in the IDE and found that developers who receive faster
+feedback write more tests, consistent with our observation (L5) about
+suite speed.
+
+\textbf{Coverage effectiveness.}
+Inozemtseva and Holmes~\cite{inozemtseva2014coverage} found that
+coverage is not strongly correlated with test suite effectiveness after
+controlling for suite size. Gopinath et al.~\cite{gopinath2014code}
+qualified this: coverage is useful as a relative
+measure within a project but misleading as an absolute quality target.
+Our dual-number reporting (raw and filtered) is an attempt to make
+coverage useful without making it a target that distorts behaviour.
+
+% ============================================================================
+% 10. CONCLUSION
+% ============================================================================
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The exclusion policy, mock boundaries, and lint rules took us from zero
+tests to 2,583 in a codebase where 13\% of the instrumented source is
+structurally untestable. But 55.6\% filtered coverage is a waypoint, not
+a destination, and the hardest open problem is one we have not solved:
+widget tests that are specific enough to catch regressions but stable
+enough to survive UI refactors without constant maintenance. We do not
+know whether our current heuristic (assert type for structure, pin one
+text string per screen) will hold as the app grows past 150,000 lines.
+
+What we are more confident about: custom lint rules returned more per
+hour than anything else in this effort. A rule costs hours to write and
+catches every future instance of a bug class, across every file, without
+a reviewer needing to remember it. If a team can afford only one thing
+from this report, it should be that.
+
+% ============================================================================
+% REFERENCES
+% ============================================================================
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

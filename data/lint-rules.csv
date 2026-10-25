@@ -1,0 +1,18 @@
+name,severity,category,description
+cubit_only,WARNING,testability,Bans extends Bloc<E,S>; forces Cubit-only state management
+file_length,ERROR,testability,Hard cap at 400 lines per file
+one_widget_per_file,WARNING,testability,One widget class per file (excludes State<T>)
+route_constants_only,WARNING,testability,Navigation must use AppRoutes.* constants
+no_raw_alpha_integer,WARNING,testability,Bans integer alpha in Color.withValues(alpha: N) where N > 1.0
+late_controllers_not_final,WARNING,testability,Prevents late final on animation/scroll controllers
+callback_present_tense,WARNING,design-system,Callback params must be present tense (onTap not onTapped)
+no_color_scheme_access,WARNING,design-system,Bans direct .colorScheme access; use design tokens
+no_cupertino_import,WARNING,design-system,Bans package:flutter/cupertino.dart imports
+no_f_prefix_on_project_widgets,WARNING,design-system,F prefix reserved for upstream forui components
+no_material_colors_constant,WARNING,design-system,"Bans Colors.* palette; use Color(0xFF...) or AppColors"
+no_material_widgets,WARNING,design-system,Bans raw Material widgets; use project replacements
+no_text_theme_access,WARNING,design-system,Bans direct .textTheme access; use design tokens
+no_theme_of,WARNING,design-system,Bans Theme.of(context) direct access
+prefer_geometry_types,WARNING,design-system,Use RTL-safe geometry types (EdgeInsetsDirectional etc.)
+screen_class_suffix,WARNING,design-system,Screen classes must use Screen suffix not Page
+widgets_via_barrel_import,WARNING,design-system,Import core widgets through barrel file only

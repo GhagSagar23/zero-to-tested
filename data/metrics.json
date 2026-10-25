@@ -1,0 +1,20 @@
+{
+  "snapshot_date": "2026-10-26",
+  "source_files": 750,
+  "source_lines": 104886,
+  "test_files": 292,
+  "test_invocations": 2583,
+  "test_lines": 53354,
+  "test_to_source_ratio": 0.51,
+  "raw_coverage_percent": 54.4,
+  "raw_covered_lines": 16895,
+  "raw_total_lines": 31039,
+  "filtered_coverage_percent": 55.6,
+  "filtered_covered_lines": 16595,
+  "filtered_total_lines": 29824,
+  "excluded_files": 21,
+  "excluded_lines": 4154,
+  "excluded_percent_of_instrumented": 13,
+  "lint_rules": 17,
+  "coverage_threshold_percent": 85
+}

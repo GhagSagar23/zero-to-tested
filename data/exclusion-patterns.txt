@@ -1,0 +1,23 @@
+# Coverage exclusion patterns from Makefile (LCOV_REMOVE_PATTERNS)
+# Used with: lcov --remove <raw> <patterns> -o <filtered>
+#
+# 14 glob patterns matching 21 files.
+# The location engine FFI bindings (core/location_engine/*, 13 files,
+# ~2,939 lines) are excluded via lcov instrumentation gaps: Rust FFI
+# code is not instrumented by the Dart coverage toolchain, not by
+# explicit Makefile patterns.
+
+'**/*.g.dart'
+'**/firebase_options*.dart'
+'**/firebase/auth_helper.dart'
+'**/firebase/firestore_helper.dart'
+'**/feature_flags/feature_flag_service.dart'
+'**/firebase/firebase.dart'
+'**/background_location_service.dart'
+'**/notification_helper.dart'
+'**/app_theme.dart'
+'**/app_text_theme.dart'
+'**/chart_tokens.dart'
+'**/pune_sample_trail.dart'
+'**/app_di.dart'
+'**/app_router.dart'

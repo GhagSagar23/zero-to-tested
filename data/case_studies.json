@@ -1,78 +1,98 @@
 {
-  "_doc": "Case study figures from Section 5. PR/commit refs point to the private Kryonex-Labs/zontra repo.",
-  "cases": [
-    {
-      "id": 1,
-      "title": "Alpha channel integer/float mixup",
-      "ref": "PR #421",
-      "section": "5",
-      "diagnosis_hours": 2,
-      "lint_rule_hours": 3,
-      "lint_rule": "no_raw_alpha_integer",
-      "lint_rule_lines": 51,
-      "category": "correctness"
-    },
-    {
-      "id": 2,
-      "title": "Tracking data discrepancy",
-      "ref": "PR #402",
-      "section": "5",
-      "employee_view_km": 22.9,
-      "employee_view_hours": 7,
-      "employee_view_waypoints": 423,
-      "admin_view_km": 3.7,
-      "admin_view_displayed_waypoints": 11,
-      "admin_view_total_waypoints": 62,
-      "root_causes": 5,
-      "root_cause_list": [
-        "un-uploaded background waypoints",
-        "no flush on reattach",
-        "wrong route reading from local SharedPreferences",
-        "ongoing session zero-defaults",
-        "UTC vs IST time comparisons"
-      ],
-      "tracking_tests_before": 12,
-      "tracking_tests_after": 47,
-      "category": "correctness"
-    },
-    {
-      "id": 3,
-      "title": "Widget assertion fragility — greeting time-of-day",
-      "ref": "commit 2641276",
-      "section": "5",
-      "fix": "textContaining instead of exact match",
-      "category": "correctness"
-    },
-    {
-      "id": 4,
-      "title": "Widget assertion fragility — NotFoundState refactor",
-      "ref": "commit 34394f8",
-      "section": "5",
-      "fix": "assert widget type instead of string content",
-      "category": "correctness"
-    },
-    {
-      "id": 5,
-      "title": "Route-ordering security bypass",
-      "ref": "app_router_test",
-      "section": "5",
-      "routes": ["/attendance/:userId/history", "/attendance/:userId/:date"],
-      "category": "security"
-    },
-    {
-      "id": 6,
-      "title": "Test suite performance — fakeAsync conversion",
-      "ref": "commit 25865ef, PR #183",
-      "section": "5",
-      "riders_service_test_before_sec": 15.3,
-      "riders_service_test_after_sec": "<1",
-      "otp_controller_test_before_sec": 6.4,
-      "otp_controller_test_after_sec": "<1",
-      "suite_tests_at_conversion": 1451,
-      "suite_runtime_before_sec": 34,
-      "suite_runtime_after_sec": 22,
-      "category": "performance",
-      "_evidence": "Runtimes from commit message 25865ef: 'fakeAsync riders_service_test (15.3s->~0) + otp_controller_test (6.4s->~0) ... test/unit 34s->22s'"
-    }
-  ]
+ "_doc": "Case study figures from Section 5. PR/commit refs point to the private Kryonex-Labs/zontra repo.",
+ "cases": [
+  {
+   "id": 1,
+   "title": "Alpha channel integer/float mixup",
+   "ref": "PR #421",
+   "section": "5",
+   "diagnosis_hours": 2,
+   "lint_rule_hours": 3,
+   "lint_rule": "no_raw_alpha_integer",
+   "lint_rule_lines": 51,
+   "category": "correctness"
+  },
+  {
+   "id": 2,
+   "title": "Tracking data discrepancy",
+   "ref": "PR #402",
+   "section": "5",
+   "employee_view_km": 22.9,
+   "employee_view_hours": 7,
+   "employee_view_waypoints": 423,
+   "admin_view_km": 3.7,
+   "admin_view_displayed_waypoints": 11,
+   "admin_view_total_waypoints": 62,
+   "root_causes": 5,
+   "root_cause_list": [
+    "un-uploaded background waypoints",
+    "no flush on reattach",
+    "wrong route reading from local SharedPreferences",
+    "ongoing session zero-defaults",
+    "UTC vs IST time comparisons"
+   ],
+   "tracking_tests_before": 12,
+   "tracking_tests_after": 47,
+   "category": "correctness"
+  },
+  {
+   "id": 3,
+   "title": "Widget assertion fragility \u2014 greeting time-of-day",
+   "ref": "commit 2641276",
+   "section": "5",
+   "fix": "textContaining instead of exact match",
+   "category": "correctness"
+  },
+  {
+   "id": 4,
+   "title": "Widget assertion fragility \u2014 NotFoundState refactor",
+   "ref": "commit 34394f8",
+   "section": "5",
+   "fix": "assert widget type instead of string content",
+   "category": "correctness"
+  },
+  {
+   "id": 5,
+   "title": "Route-ordering security bypass",
+   "ref": "app_router_test",
+   "section": "5",
+   "routes": [
+    "/attendance/:userId/history",
+    "/attendance/:userId/:date"
+   ],
+   "category": "security"
+  },
+  {
+   "id": 6,
+   "title": "Test suite performance \u2014 fakeAsync conversion",
+   "ref": "commit 25865ef, PR #183",
+   "section": "5",
+   "riders_service_test_before_sec": 15.3,
+   "riders_service_test_after_sec": "<1",
+   "otp_controller_test_before_sec": 6.4,
+   "otp_controller_test_after_sec": "<1",
+   "suite_tests_at_conversion": 1451,
+   "suite_runtime_before_sec": 34,
+   "suite_runtime_after_sec": 22,
+   "category": "performance",
+   "_evidence": "Runtimes from commit message 25865ef: 'fakeAsync riders_service_test (15.3s->~0) + otp_controller_test (6.4s->~0) ... test/unit 34s->22s'"
+  }
+ ],
+ "provenance": {
+  "schema": "https://github.com/ASSERT-KTH/assert-research-agent/blob/main/schemas/provenance-v1.json",
+  "command": [
+   "python3",
+   "scripts/emit_case_studies.py"
+  ],
+  "cwd": ".",
+  "inputs": [
+   {
+    "path": "data/case_studies.json",
+    "sha256": "2009bf24700473d60604ad342cbaacc0e7828f3f679f6f66bc9e319806719d84"
+   }
+  ],
+  "commit": "a5bda2b544d5fae6ae2bb98036e3792219c9db23",
+  "now": "2026-11-02T12:54:13+00:00",
+  "osaudit": "0.7.0"
+ }
 }

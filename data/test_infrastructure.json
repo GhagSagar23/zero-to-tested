@@ -1,94 +1,166 @@
 {
-  "_doc": "Test infrastructure metrics not covered by metrics.json. Snapshot date matches metrics.json.",
-  "snapshot_date": "2026-10-26",
-  "cubits": {
-    "production_total": 50,
-    "tested": 28,
-    "untested": 22,
-    "cubit_test_files": 29,
-    "cubit_file_coverage_percent": 56,
-    "_note": "One test file (members_cubit_test) covers org_members_cubit via renamed import"
-  },
-  "employee_shift_cubit": {
-    "test_files": 4,
-    "total_test_lines": 1033,
-    "files": [
-      {"name": "employee_shift_cubit_test.dart", "lines": 385},
-      {"name": "employee_shift_office_teardown_test.dart", "lines": 314},
-      {"name": "employee_shift_today_session_test.dart", "lines": 175},
-      {"name": "employee_shift_punch_geofence_test.dart", "lines": 159}
-    ]
-  },
-  "phone_auth": {
-    "production_file": "firebase_phone_auth.dart",
-    "production_lines": 233,
-    "test_file": "firebase_phone_auth_test.dart",
-    "test_lines": 390,
-    "test_to_production_ratio": 1.67
-  },
-  "helpers": {
-    "files": 18,
-    "total_lines": 1525,
-    "notable": [
-      {"name": "feature_flag_test_helper.dart", "lines": 136, "purpose": "FirebaseRemoteConfigPlatform fake"},
-      {"name": "widget_test_helper.dart", "lines": 79, "purpose": "wrapWithTheme() — 4 theme variants"},
-      {"name": "fake_async_resolve.dart", "lines": 29, "purpose": "resolve<T>() for fakeAsync futures"},
-      {"name": "app_storage_helper.dart", "lines": 7, "purpose": "SharedPreferences setMockInitialValues wrapper"}
-    ]
-  },
-  "integration_tests": {
-    "files": 6,
-    "total_lines": 1355,
-    "flows": [
-      {"name": "auth_flow_test.dart", "lines": 323},
-      {"name": "shift_lifecycle_flow_test.dart", "lines": 367},
-      {"name": "offline_sync_flow_test.dart", "lines": 361},
-      {"name": "push_notification_flow_test.dart", "lines": 243}
-    ],
-    "harness": [
-      {"name": "smoke_test.dart", "lines": 29},
-      {"name": "all_tests_test.dart", "lines": 32}
-    ]
-  },
-  "file_sizes": {
-    "feature_flag_service": 116,
-    "app_router": 253,
-    "no_raw_alpha_integer": 51
-  },
-  "ffi_bindings": {
-    "directory": "lib/core/location_engine/",
-    "files": 17,
-    "total_lines": 3495,
-    "_paper_note": "Paper cites 13 files / 2,939 lines from an earlier measurement; 4 files (geofence_event_monitor, geofence_event_sync_service, task_geofence_monitor, trajectory_filter) were added after that measurement"
-  },
-  "di_wiring": {
-    "files": 3,
-    "total_lines": 455,
-    "breakdown": [
-      {"name": "service_locator.dart", "lines": 256},
-      {"name": "service_locator_cubits.dart", "lines": 162},
-      {"name": "service_locator_announcements.dart", "lines": 37}
-    ]
-  },
-  "design_system_lint_rules": 11,
-  "testability_lint_rules": 6,
-  "tracking_module": {
-    "tests_before_case2": 12,
-    "tests_after_case2": 47,
-    "_evidence": "PR #402 diff; tracking test files added in that PR"
-  },
-  "fakeAsync_conversion": {
-    "commit": "25865ef",
-    "pr": "#183",
-    "tests_at_conversion": 1451,
-    "suite_before_sec": 34,
-    "suite_after_sec": 22,
-    "riders_service_test_before_sec": 15.3,
-    "otp_controller_test_before_sec": 6.4,
-    "_evidence": "Commit message 25865ef records all four timing values"
-  },
-  "team_size": 2,
-  "client_organisations": 2,
-  "testing_duration_months": 18,
-  "_testing_duration_note": "April 2025 (first tests in pre-migration repo) to October 2026 (snapshot)"
+ "_doc": "Test infrastructure metrics not covered by metrics.json. Snapshot date matches metrics.json.",
+ "snapshot_date": "2026-10-26",
+ "cubits": {
+  "production_total": 50,
+  "tested": 28,
+  "untested": 22,
+  "cubit_test_files": 29,
+  "cubit_file_coverage_percent": 56,
+  "_note": "One test file (members_cubit_test) covers org_members_cubit via renamed import"
+ },
+ "employee_shift_cubit": {
+  "test_files": 4,
+  "total_test_lines": 1033,
+  "files": [
+   {
+    "name": "employee_shift_cubit_test.dart",
+    "lines": 385
+   },
+   {
+    "name": "employee_shift_office_teardown_test.dart",
+    "lines": 314
+   },
+   {
+    "name": "employee_shift_today_session_test.dart",
+    "lines": 175
+   },
+   {
+    "name": "employee_shift_punch_geofence_test.dart",
+    "lines": 159
+   }
+  ]
+ },
+ "phone_auth": {
+  "production_file": "firebase_phone_auth.dart",
+  "production_lines": 233,
+  "test_file": "firebase_phone_auth_test.dart",
+  "test_lines": 390,
+  "test_to_production_ratio": 1.67
+ },
+ "helpers": {
+  "files": 18,
+  "total_lines": 1525,
+  "notable": [
+   {
+    "name": "feature_flag_test_helper.dart",
+    "lines": 136,
+    "purpose": "FirebaseRemoteConfigPlatform fake"
+   },
+   {
+    "name": "widget_test_helper.dart",
+    "lines": 79,
+    "purpose": "wrapWithTheme() \u2014 4 theme variants"
+   },
+   {
+    "name": "fake_async_resolve.dart",
+    "lines": 29,
+    "purpose": "resolve<T>() for fakeAsync futures"
+   },
+   {
+    "name": "app_storage_helper.dart",
+    "lines": 7,
+    "purpose": "SharedPreferences setMockInitialValues wrapper"
+   }
+  ]
+ },
+ "integration_tests": {
+  "files": 6,
+  "total_lines": 1355,
+  "flows": [
+   {
+    "name": "auth_flow_test.dart",
+    "lines": 323
+   },
+   {
+    "name": "shift_lifecycle_flow_test.dart",
+    "lines": 367
+   },
+   {
+    "name": "offline_sync_flow_test.dart",
+    "lines": 361
+   },
+   {
+    "name": "push_notification_flow_test.dart",
+    "lines": 243
+   }
+  ],
+  "harness": [
+   {
+    "name": "smoke_test.dart",
+    "lines": 29
+   },
+   {
+    "name": "all_tests_test.dart",
+    "lines": 32
+   }
+  ]
+ },
+ "file_sizes": {
+  "feature_flag_service": 116,
+  "app_router": 253,
+  "no_raw_alpha_integer": 51
+ },
+ "ffi_bindings": {
+  "directory": "lib/core/location_engine/",
+  "files": 17,
+  "total_lines": 3495,
+  "_paper_note": "Paper cites 13 files / 2,939 lines from an earlier measurement; 4 files (geofence_event_monitor, geofence_event_sync_service, task_geofence_monitor, trajectory_filter) were added after that measurement"
+ },
+ "di_wiring": {
+  "files": 3,
+  "total_lines": 455,
+  "breakdown": [
+   {
+    "name": "service_locator.dart",
+    "lines": 256
+   },
+   {
+    "name": "service_locator_cubits.dart",
+    "lines": 162
+   },
+   {
+    "name": "service_locator_announcements.dart",
+    "lines": 37
+   }
+  ]
+ },
+ "design_system_lint_rules": 11,
+ "testability_lint_rules": 6,
+ "tracking_module": {
+  "tests_before_case2": 12,
+  "tests_after_case2": 47,
+  "_evidence": "PR #402 diff; tracking test files added in that PR"
+ },
+ "fakeAsync_conversion": {
+  "commit": "25865ef",
+  "pr": "#183",
+  "tests_at_conversion": 1451,
+  "suite_before_sec": 34,
+  "suite_after_sec": 22,
+  "riders_service_test_before_sec": 15.3,
+  "otp_controller_test_before_sec": 6.4,
+  "_evidence": "Commit message 25865ef records all four timing values"
+ },
+ "team_size": 2,
+ "client_organisations": 2,
+ "testing_duration_months": 18,
+ "_testing_duration_note": "April 2025 (first tests in pre-migration repo) to October 2026 (snapshot)",
+ "provenance": {
+  "schema": "https://github.com/ASSERT-KTH/assert-research-agent/blob/main/schemas/provenance-v1.json",
+  "command": [
+   "python3",
+   "scripts/emit_test_infrastructure.py"
+  ],
+  "cwd": ".",
+  "inputs": [
+   {
+    "path": "data/test_infrastructure.json",
+    "sha256": "820e8ddeedd141fece824e580dfc28728bfdd9e54012714c6932b9eeb19797d0"
+   }
+  ],
+  "commit": "da43e640c7d77f2b10f159b94b2e4e94fa1c7925",
+  "now": "2026-11-02T12:54:05+00:00",
+  "osaudit": "0.7.0"
+ }
 }

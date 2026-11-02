@@ -1,0 +1,82 @@
+# Traceable empirical numbers as printed in the paper.
+# Each line: <number as printed> | <source>
+# osaudit matches numbers against this file verbatim.
+#
+# Source key:
+#   MJ = data/metrics.json
+#   FS = data/file-sizes.csv
+#   CI = data/cubit-inventory.csv
+#   CS = data/case-studies.json
+#   TI = data/test-infrastructure.json
+#   CS-TXT = data/coverage-summary.txt
+#   EP = data/exclusion-patterns.txt
+#   LR = data/lint-rules.csv
+
+# === Table 3 / headline metrics (MJ) ===
+750 | MJ source_files
+104,886 | MJ source_lines
+292 | MJ test_files
+2,583 | MJ test_invocations
+53,354 | MJ test_lines
+0.51 | MJ test_to_source_ratio
+54.4% | MJ raw_coverage_percent
+16,895 | MJ raw_covered_lines
+31,039 | MJ raw_total_lines
+55.6% | MJ filtered_coverage_percent
+16,595 | MJ filtered_covered_lines
+29,824 | MJ filtered_total_lines
+21 | MJ excluded_files
+4,154 | MJ excluded_lines
+13% | MJ excluded_percent_of_instrumented
+17 | MJ lint_rules
+85% | MJ coverage_threshold_percent
+0.5% | MJ golden_pixel_diff_threshold_percent
+400 | MJ file_length_cap
+
+# === Cubit metrics (MJ + CI) ===
+50 | MJ production_cubits
+28 | MJ tested_cubits
+22 | MJ untested_cubits
+29 | MJ cubit_test_files
+56% | MJ cubit_file_coverage_percent
+
+# === Helper / integration metrics (MJ + TI) ===
+18 | MJ helper_files
+1,500 | TI helpers.total_lines (rounded in paper from 1,525)
+1,525 | TI helpers.total_lines (exact)
+6 | MJ integration_test_files
+1,355 | MJ integration_test_lines
+1,450 | TI (approximate earlier test count)
+
+# === Per-file sizes (FS) ===
+116 | FS feature_flag_service.dart
+455 | TI di_wiring.total_lines
+253 | FS app_router.dart
+233 | FS firebase_phone_auth.dart
+390 | FS firebase_phone_auth_test.dart
+1.67 | TI phone_auth.test_to_production_ratio
+51 | FS no_raw_alpha_integer.dart
+79 | FS widget_test_helper.dart
+29 | FS fake_async_resolve.dart
+7 | FS app_storage_helper.dart
+136 | FS feature_flag_test_helper.dart
+1,033 | TI employee_shift_cubit.total_test_lines
+3,495 | TI ffi_bindings.total_lines
+11 | LR design-system category count
+
+# === Case study numbers (CS) ===
+22.9 | CS case 2 employee_view_km
+423 | CS case 2 employee_view_waypoints
+3.7 | CS case 2 admin_view_km
+62 | CS case 2 admin_view_total_waypoints
+12 | CS case 2 tracking_tests_before
+47 | CS case 2 tracking_tests_after
+5 | CS case 2 root_causes
+15.3 | CS case 6 riders_service_test_before_sec
+6.4 | CS case 6 otp_controller_test_before_sec
+1,451 | CS case 6 suite_tests_at_conversion
+34 | CS case 6 suite_runtime_before_sec
+22 | CS case 6 suite_runtime_after_sec
+
+# === Team / project context (TI) ===
+2 | TI team_size

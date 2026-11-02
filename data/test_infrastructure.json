@@ -50,6 +50,11 @@
       {"name": "all_tests_test.dart", "lines": 32}
     ]
   },
+  "file_sizes": {
+    "feature_flag_service": 116,
+    "app_router": 253,
+    "no_raw_alpha_integer": 51
+  },
   "ffi_bindings": {
     "directory": "lib/core/location_engine/",
     "files": 17,

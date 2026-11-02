@@ -4,38 +4,369 @@ schema = "https://github.com/ASSERT-KTH/assert-research-agent/blob/main/schemas/
 tex = ["paper/main.tex"]
 
 [results]
-data = [
+files = [
   "data/metrics.json",
-  "data/file-sizes.csv",
-  "data/cubit-inventory.csv",
-  "data/case-studies.json",
-  "data/test-infrastructure.json",
-  "data/coverage-summary.txt",
-  "data/exclusion-patterns.txt",
-  "data/lint-rules.csv",
+  "data/case_studies.json",
+  "data/test_infrastructure.json",
 ]
-scripts = ["scripts/verify-metrics.sh"]
+instruments = [
+  "scripts/emit_metrics.py",
+  "scripts/emit_test_infrastructure.py",
+  "scripts/emit_case_studies.py",
+]
 
-# Numbers that cannot be backed by a data file or script because the
-# production codebase is private and the values are narrative/historical.
-# Each entry documents the evidence source.
+# ============================================================================
+# Derived numbers: traces paper numbers to JSON key paths.
+# Format: <file_stem>.<key> — file stem uses underscores (no hyphens).
+# Percentages use "N%" form to match LaTeX \%.
+# ============================================================================
+
+# --- Table 3 / headline metrics ---
+[[numbers.derive]]
+value = "750"
+expr = "metrics.source_files"
+
+[[numbers.derive]]
+value = "104,886"
+expr = "metrics.source_lines"
+
+[[numbers.derive]]
+value = "292"
+expr = "metrics.test_files"
+
+[[numbers.derive]]
+value = "2,583"
+expr = "metrics.test_invocations"
+
+[[numbers.derive]]
+value = "53,354"
+expr = "metrics.test_lines"
+
+[[numbers.derive]]
+value = "0.51"
+expr = "metrics.test_to_source_ratio"
+
+[[numbers.derive]]
+value = "54.4%"
+expr = "metrics.raw_coverage_percent / 100"
+
+[[numbers.derive]]
+value = "16,895"
+expr = "metrics.raw_covered_lines"
+
+[[numbers.derive]]
+value = "31,039"
+expr = "metrics.raw_total_lines"
+
+[[numbers.derive]]
+value = "55.6%"
+expr = "metrics.filtered_coverage_percent / 100"
+
+[[numbers.derive]]
+value = "16,595"
+expr = "metrics.filtered_covered_lines"
+
+[[numbers.derive]]
+value = "29,824"
+expr = "metrics.filtered_total_lines"
+
+[[numbers.derive]]
+value = "21"
+expr = "metrics.excluded_files"
+
+[[numbers.derive]]
+value = "4,154"
+expr = "metrics.excluded_lines"
+
+[[numbers.derive]]
+value = "13%"
+expr = "metrics.excluded_percent_of_instrumented / 100"
+
+[[numbers.derive]]
+value = "17"
+expr = "metrics.lint_rules"
+
+[[numbers.derive]]
+value = "85%"
+expr = "metrics.coverage_threshold_percent / 100"
+
+[[numbers.derive]]
+value = "0.5%"
+expr = "metrics.golden_pixel_diff_threshold_percent / 100"
+
+[[numbers.derive]]
+value = "400"
+expr = "metrics.file_length_cap"
+
+[[numbers.derive]]
+value = "6"
+expr = "metrics.regression_cases_documented"
+
+# --- Cubit metrics ---
+[[numbers.derive]]
+value = "50"
+expr = "metrics.production_cubits"
+
+[[numbers.derive]]
+value = "28"
+expr = "metrics.tested_cubits"
+
+[[numbers.derive]]
+value = "22"
+expr = "metrics.untested_cubits"
+
+[[numbers.derive]]
+value = "29"
+expr = "metrics.cubit_test_files"
+
+[[numbers.derive]]
+value = "56%"
+expr = "metrics.cubit_file_coverage_percent / 100"
+
+# --- Helpers / integration ---
+[[numbers.derive]]
+value = "18"
+expr = "metrics.helper_files"
+
+[[numbers.derive]]
+value = "1,355"
+expr = "metrics.integration_test_lines"
+
+[[numbers.derive]]
+value = "2"
+expr = "metrics.team_size"
+
+# --- Test infrastructure ---
+[[numbers.derive]]
+value = "1,033"
+expr = "test_infrastructure.employee_shift_cubit.total_test_lines"
+
+[[numbers.derive]]
+value = "233"
+expr = "test_infrastructure.phone_auth.production_lines"
+
+[[numbers.derive]]
+value = "390"
+expr = "test_infrastructure.phone_auth.test_lines"
+
+[[numbers.derive]]
+value = "3,495"
+expr = "test_infrastructure.ffi_bindings.total_lines"
+
+[[numbers.derive]]
+value = "455"
+expr = "test_infrastructure.di_wiring.total_lines"
+
+[[numbers.derive]]
+value = "11"
+expr = "test_infrastructure.design_system_lint_rules"
+
+[[numbers.derive]]
+value = "136"
+expr = "test_infrastructure.helpers.notable[0].lines"
+
+[[numbers.derive]]
+value = "79"
+expr = "test_infrastructure.helpers.notable[1].lines"
+
+[[numbers.derive]]
+value = "7"
+expr = "test_infrastructure.helpers.notable[3].lines"
+
+[[numbers.derive]]
+value = "12"
+expr = "test_infrastructure.tracking_module.tests_before_case2"
+
+[[numbers.derive]]
+value = "47"
+expr = "test_infrastructure.tracking_module.tests_after_case2"
+
+[[numbers.derive]]
+value = "1,451"
+expr = "test_infrastructure.fakeAsync_conversion.tests_at_conversion"
+
+[[numbers.derive]]
+value = "34"
+expr = "test_infrastructure.fakeAsync_conversion.suite_before_sec"
+
+[[numbers.derive]]
+value = "22"
+expr = "test_infrastructure.fakeAsync_conversion.suite_after_sec"
+
+[[numbers.derive]]
+value = "15.3"
+expr = "test_infrastructure.fakeAsync_conversion.riders_service_test_before_sec"
+
+[[numbers.derive]]
+value = "6.4"
+expr = "test_infrastructure.fakeAsync_conversion.otp_controller_test_before_sec"
+
+[[numbers.derive]]
+value = "116"
+expr = "test_infrastructure.file_sizes.feature_flag_service"
+
+[[numbers.derive]]
+value = "253"
+expr = "test_infrastructure.file_sizes.app_router"
+
+[[numbers.derive]]
+value = "51"
+expr = "test_infrastructure.file_sizes.no_raw_alpha_integer"
+
+# --- Case studies ---
+[[numbers.derive]]
+value = "22.9"
+expr = "case_studies.cases[1].employee_view_km"
+
+[[numbers.derive]]
+value = "423"
+expr = "case_studies.cases[1].employee_view_waypoints"
+
+[[numbers.derive]]
+value = "7"
+expr = "case_studies.cases[1].employee_view_hours"
+
+[[numbers.derive]]
+value = "3.7"
+expr = "case_studies.cases[1].admin_view_km"
+
+[[numbers.derive]]
+value = "62"
+expr = "case_studies.cases[1].admin_view_total_waypoints"
+
+[[numbers.derive]]
+value = "5"
+expr = "case_studies.cases[1].root_causes"
+
+# ============================================================================
+# Allowed: non-empirical values (code examples, PR/commit refs, cited
+# literature, version numbers, ordinals, thresholds, approximations).
+# ============================================================================
+
+# --- Title ---
+[[numbers.allow]]
+value = "0%"
+reason = "Title: 'From 0% to Tested' — structural, not empirical."
+
+# --- Code example literals (Case 1: alpha channel) ---
+[[numbers.allow]]
+value = "160"
+reason = "Code example: 8-bit alpha integer (Case 1)."
 
 [[numbers.allow]]
-value = "18 months"
-reason = "Testing journey duration: first tests in pre-migration repo (April 2025) to snapshot (October 2026). Git history spans two repositories; first repo is private."
+value = "200"
+reason = "Code example: 8-bit alpha integer (Case 1)."
 
 [[numbers.allow]]
-value = "5 %"
-reason = "Early exclusion threshold (Section 4.1) — a design decision, not a measurement."
+value = "120"
+reason = "Code example: 8-bit alpha integer (Case 1)."
 
 [[numbers.allow]]
-value = "1200 lines"
-reason = "Early exclusion list size (Section 4.1) — approximate historical value before FFI bridge was added to exclusions. Superseded by current 4,154-line exclusion."
+value = "180"
+reason = "Code example: 8-bit alpha integer (Case 1)."
 
 [[numbers.allow]]
-value = "90 %"
-reason = "Tracking/attendance Cubit coverage floor (Section 6) — qualitative observation from per-module coverage runs, not a single metric."
+value = "8"
+reason = "Prose: '8-bit integers' (Case 1)."
 
 [[numbers.allow]]
-value = "20 %"
-reason = "Approximate share of screen widgets not yet covered (Section 6) — estimate from coverage report inspection."
+value = "0.0"
+reason = "API range: Color.withValues(alpha:) 0.0–1.0."
+
+[[numbers.allow]]
+value = "1.0"
+reason = "API range: Color.withValues(alpha:) 0.0–1.0."
+
+# --- PR and commit references ---
+[[numbers.allow]]
+value = "421"
+reason = "PR #421 (private repo)."
+
+[[numbers.allow]]
+value = "402"
+reason = "PR #402 (private repo)."
+
+[[numbers.allow]]
+value = "183"
+reason = "PR #183 (private repo)."
+
+[[numbers.allow]]
+value = "2641276"
+reason = "Commit hash prefix (private repo)."
+
+# --- Version numbers ---
+[[numbers.allow]]
+value = "3.47"
+reason = "Flutter SDK version number."
+
+# --- Cited literature ---
+[[numbers.allow]]
+value = "83"
+reason = "Kochhar et al. survey: 83 Android developers (cited)."
+
+[[numbers.allow]]
+value = "14%"
+reason = "Kochhar et al.: 14% wrote no tests (cited)."
+
+[[numbers.allow]]
+value = "0.04"
+reason = "Linares-Vasquez et al. median test ratio (cited)."
+
+[[numbers.allow]]
+value = "1,000"
+reason = "Linares-Vasquez et al. sample of 1,000 apps (cited)."
+
+[[numbers.allow]]
+value = "150,000"
+reason = "Cited statistic from related work."
+
+# --- Ordinals and small prose numbers ---
+[[numbers.allow]]
+value = "1"
+reason = "Ordinal: 'Case 1', 'one line', '1:1 ratio'."
+
+[[numbers.allow]]
+value = "3"
+reason = "Prose: '3 files', 'Cases 3–4'."
+
+[[numbers.allow]]
+value = "4"
+reason = "Prose: '4 test files', 'Cases 3–4'."
+
+[[numbers.allow]]
+value = "15"
+reason = "Prose range: '15–20 lines of ancestor setup'."
+
+[[numbers.allow]]
+value = "20"
+reason = "Prose range: '15–20 lines of ancestor setup' (also ~20% screen widgets)."
+
+
+# --- Qualitative observations and approximations ---
+[[numbers.allow]]
+value = "55%"
+reason = "Prose approximation: 'not a policy that 55% is acceptable'."
+
+[[numbers.allow]]
+value = "90%"
+reason = "Qualitative: tracking/attendance Cubits 'above 90%'."
+
+[[numbers.allow]]
+value = "20%"
+reason = "Approximate: ~20% uncovered screen widgets."
+
+[[numbers.allow]]
+value = "5%"
+reason = "Design-smell threshold (Section 4.1)."
+
+[[numbers.allow]]
+value = "1,500"
+reason = "Rounded: 'roughly 1,500 lines' (exact: 1,525)."
+
+[[numbers.allow]]
+value = "1,450"
+reason = "Approximate: 'roughly 1,450' earlier test count."
+
+[[numbers.allow]]
+value = "1,200"
+reason = "Early exclusion list size (approximate historical)."

@@ -209,7 +209,7 @@ We identified four categories of untestable code:
 \end{enumerate}
 
 Together these categories account for 21 files and 4,154 lines, roughly
-13\% of the instrumented source. The bulk of the exclusion (2,939 lines)
+13\% of the instrumented source. The bulk of the exclusion (3,495 lines)
 is the location engine's Dart-side FFI bindings: not thin wrappers, but
 the full bridge layer between the app and the Rust core. The transitive
 import graph means that without explicit architectural boundaries, these
@@ -248,7 +248,7 @@ Pattern & Reason \\
 \texttt{firebase/*.dart}   & SDK wrappers (3 files) \\
 \texttt{feature\_flag\_service} & Remote Config wrapper \\
 \texttt{background\_location\_} \texttt{service} & Native FFI bridge \\
-\texttt{core/location\_engine/*} & FFI bindings (13 files) \\
+\texttt{core/location\_engine/*} & FFI bindings (17 files) \\
 \texttt{notification\_helper} & FCM platform code \\
 \texttt{app\_theme.dart}, \texttt{app\_text\_theme.dart} & Style constants \\
 \texttt{chart\_tokens.dart} & Style constants \\
@@ -367,13 +367,13 @@ Material. Every widget test must pump its widget inside a theme provider,
 localisations, and a \texttt{BlocProvider<ThemeCubit>}. We extracted this
 into \texttt{wrapWithTheme()}, which has four variants: light, dark,
 overlay-light, overlay-dark. Without this helper, each widget test file
-would repeat 15--20 lines of ancestor setup. The helper is 82 lines and
+would repeat 15--20 lines of ancestor setup. The helper is 79 lines and
 is imported by every widget test in the suite. This is scaffolding that
 the Flutter testing documentation does not warn you about: the moment you
 leave Material defaults, every widget test needs a custom test harness.
 
 \textbf{Driving futures inside \texttt{fakeAsync}.}
-A 28-line helper (\texttt{fake\_async\_resolve.dart}) provides a generic
+A 29-line helper (\texttt{fake\_async\_resolve.dart}) provides a generic
 \texttt{resolve<T>()} function that drives a \texttt{Future<T>} to
 completion inside \texttt{fakeAsync}, re-throwing any captured error. The
 standard \texttt{fakeAsync} API does not provide this out of the box;
@@ -438,7 +438,7 @@ project's thinner \texttt{FThemeData} instead.
 
 Each rule is a single Dart class extending \texttt{DartLintRule} from
 \texttt{custom\_lint\_builder}. The \texttt{no\_raw\_alpha\_integer} rule
-(born from Case 1) is 47 lines: it visits every
+(born from Case 1) is 51 lines: it visits every
 \texttt{InstanceCreationExpression} and
 \texttt{MethodInvocation} named \texttt{withValues}, checks whether the
 \texttt{alpha} argument is a numeric literal greater than 1.0, and

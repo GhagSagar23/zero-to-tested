@@ -1,0 +1,40 @@
+file,lines,category,section,notes
+lib/core/location_engine/engine.dart,319,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_config.dart,228,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_gps_off.dart,161,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_lifecycle.dart,363,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_lifecycle_callbacks.dart,85,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_location_handler.dart,325,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_models.dart,25,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_odometer.dart,187,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_office_geofence.dart,185,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_permissions.dart,211,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/engine_upload.dart,352,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/eval_config.dart,153,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/geofence_event_monitor.dart,86,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/geofence_event_sync_service.dart,326,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/headless_task.dart,157,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/task_geofence_monitor.dart,211,ffi-bindings,3,Tracelet FFI bridge
+lib/core/location_engine/trajectory_filter.dart,121,ffi-bindings,3,Tracelet FFI bridge
+lib/core/feature_flags/feature_flag_service.dart,116,sdk-wrapper,3,Firebase Remote Config wrapper
+lib/core/di/service_locator.dart,256,di-wiring,3,GetIt DI registration (main)
+lib/core/di/service_locator_cubits.dart,162,di-wiring,3,GetIt DI registration (cubits)
+lib/core/di/service_locator_announcements.dart,37,di-wiring,3,GetIt DI registration (announcements)
+lib/core/router/app_router.dart,253,route-table,3,Route definitions
+lib/data/auth/firebase_phone_auth.dart,233,production,4.2,Phone-auth wrapper (initially excluded)
+packages/zontra_lints/lib/src/no_raw_alpha_integer.dart,51,lint-rule,4.3,Custom lint rule from Case 1
+test/helpers/widget_test_helper.dart,79,test-helper,4.2,"wrapWithTheme() — 4 theme variants"
+test/helpers/fake_async_resolve.dart,29,test-helper,4.2,resolve<T>() for fakeAsync futures
+test/helpers/app_storage_helper.dart,7,test-helper,4.2,SharedPreferences mock setup
+test/helpers/feature_flag_test_helper.dart,136,test-helper,6,FirebaseRemoteConfigPlatform fake
+test/unit/data/firebase_phone_auth_test.dart,390,test,4.2,Phone-auth callback-capture tests
+test/unit/cubits/employee_shift_cubit_test.dart,385,test,4.2,EmployeeShiftCubit — main
+test/unit/cubits/employee_shift_punch_geofence_test.dart,159,test,4.2,EmployeeShiftCubit — geofence
+test/unit/cubits/employee_shift_office_teardown_test.dart,314,test,4.2,EmployeeShiftCubit — teardown
+test/unit/cubits/employee_shift_today_session_test.dart,175,test,4.2,EmployeeShiftCubit — session hydration
+integration_test/flows/auth_flow_test.dart,323,integration,6,Auth flow integration test
+integration_test/flows/offline_sync_flow_test.dart,361,integration,6,Offline sync integration test
+integration_test/flows/push_notification_flow_test.dart,243,integration,6,Push notification integration test
+integration_test/flows/shift_lifecycle_flow_test.dart,367,integration,6,Shift lifecycle integration test
+integration_test/smoke_test.dart,29,integration,6,Smoke test harness
+integration_test/all_tests_test.dart,32,integration,6,All-tests harness entry point

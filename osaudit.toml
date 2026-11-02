@@ -1,0 +1,41 @@
+schema = "https://github.com/ASSERT-KTH/assert-research-agent/blob/main/schemas/audit-v1.json"
+
+[paper]
+tex = ["paper/main.tex"]
+
+[results]
+data = [
+  "data/metrics.json",
+  "data/file-sizes.csv",
+  "data/cubit-inventory.csv",
+  "data/case-studies.json",
+  "data/test-infrastructure.json",
+  "data/coverage-summary.txt",
+  "data/exclusion-patterns.txt",
+  "data/lint-rules.csv",
+]
+scripts = ["scripts/verify-metrics.sh"]
+
+# Numbers that cannot be backed by a data file or script because the
+# production codebase is private and the values are narrative/historical.
+# Each entry documents the evidence source.
+
+[[numbers.allow]]
+value = "18 months"
+reason = "Testing journey duration: first tests in pre-migration repo (April 2025) to snapshot (October 2026). Git history spans two repositories; first repo is private."
+
+[[numbers.allow]]
+value = "5 %"
+reason = "Early exclusion threshold (Section 4.1) — a design decision, not a measurement."
+
+[[numbers.allow]]
+value = "1200 lines"
+reason = "Early exclusion list size (Section 4.1) — approximate historical value before FFI bridge was added to exclusions. Superseded by current 4,154-line exclusion."
+
+[[numbers.allow]]
+value = "90 %"
+reason = "Tracking/attendance Cubit coverage floor (Section 6) — qualitative observation from per-module coverage runs, not a single metric."
+
+[[numbers.allow]]
+value = "20 %"
+reason = "Approximate share of screen widgets not yet covered (Section 6) — estimate from coverage report inspection."

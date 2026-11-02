@@ -16,5 +16,21 @@
   "excluded_lines": 4154,
   "excluded_percent_of_instrumented": 13,
   "lint_rules": 17,
-  "coverage_threshold_percent": 85
+  "lint_rules_testability": 6,
+  "lint_rules_design_system": 11,
+  "coverage_threshold_percent": 85,
+  "golden_pixel_diff_threshold_percent": 0.5,
+  "production_cubits": 50,
+  "tested_cubits": 28,
+  "untested_cubits": 22,
+  "cubit_test_files": 29,
+  "cubit_file_coverage_percent": 56,
+  "helper_files": 18,
+  "helper_lines": 1525,
+  "integration_test_files": 6,
+  "integration_test_lines": 1355,
+  "team_size": 2,
+  "client_organisations": 2,
+  "file_length_cap": 400,
+  "regression_cases_documented": 6
 }

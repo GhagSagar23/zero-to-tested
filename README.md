@@ -1,8 +1,10 @@
 # From 0% to Tested
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24260881.svg)](https://doi.org/10.5281/zenodo.24260881)
+
 Companion repo for _"From 0% to Tested: Unit-Testing Flutter Apps with Heavy Platform Integration"_ (Ghag, 2026).
 
-**Paper:** [PDF](https://github.com/GhagSagar23/zero-to-tested/releases/download/v1.0/main.pdf)
+**Paper:** [Zenodo (DOI)](https://doi.org/10.5281/zenodo.24260881) · [PDF](https://github.com/GhagSagar23/zero-to-tested/releases/download/v1.0/main.pdf)
 **Lint rules:** [kx_lints on pub.dev](https://pub.dev/packages/kx_lints)
 **Author:** Sagar Ghag, Kryonex Labs
 
